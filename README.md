@@ -1,8 +1,8 @@
-# Monte Carlo Tree Search (MCTS) for Gomoku
-This repository contains a Python implementation of the Monte Carlo Tree Search (MCTS) algorithm for playing the game of Gomoku. The MCTS algorithm is a heuristic search algorithm that uses random simulations to find the best move in a game.
+# Monte Carlo Tree Search (MCTS) for Go
+This repository contains a Python implementation of the Monte Carlo Tree Search (MCTS) algorithm for playing the game of Go. The MCTS algorithm is a heuristic search algorithm that uses random simulations to find the best move in a game.
 
 ## Overview
-The game of Gomoku is played on a 15x15 board. The objective of the game is to place five stones in a row, either horizontally, vertically, or diagonally. The game is played by two players, Black and White, who take turns placing stones on the board.
+The game of Go is played on a 15x15 board. The objective of the game is to place five stones in a row, either horizontally, vertically, or diagonally. The game is played by two players, Black and White, who take turns placing stones on the board.
 
 The MCTS algorithm works by building a search tree from the current game state. At each node in the tree, the algorithm chooses the move that has the highest Upper Confidence Bound (UCB) score, which balances the exploitation of the best moves found so far with the exploration of new moves. The algorithm then simulates a game from the chosen move to the end of the game, using a policy network to guide the simulations. The result of the simulation is then backpropagated up the tree, updating the UCB scores of the nodes visited during the search.
 
