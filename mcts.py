@@ -24,106 +24,103 @@ from tensorflow import keras
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 
-sys.setrecursionlimit(100000)
+sys.setrecursionlimit(100000) # for deep trees
 
 
 def print_board(board):
     for row in board:
         print(' '.join(str(cell) for cell in row))
 
-
 class Player:
     def __init__(self, color):
         self.color = color
         self.passed = False
 
-    def opponent(self):
-        return BLACK if self.color == WHITE else WHITE
+    def opponent(self): 
+        return BLACK if self.color == WHITE else WHITE 
 
-    def __str__(self):
-        return self.color
+    def __str__(self): 
+        return self.color 
 
 
-BLACK = Player(color='B')
+BLACK = Player(color='B') 
 WHITE = Player(color='W')
 
 
-class Node:
-    def __init__(self, move=None, parent=None, state=None, player=None):
-        self.move = move
-        self.parent = parent
-        self.children = []
-        self.visits = 0
-        self.score = 0
-        self.state = state
-        self.player = player
-        self.untried_moves = state.get_legal_moves(player)
+class Node: # Defines a new class named Node.
+    def __init__(self, move=None, parent=None, state=None, player=None): # Defines a special method called __init__, which is used to initialize new objects of the Node class. This method takes four arguments: self (which refers to the object being created), move (which represents the move that led to the current state), parent (which represents the parent node of the current node), state (which represents the current state), and player (which represents the player to move in the current state).
+        self.move = move 
+        self.parent = parent 
+        self.children = [] 
+        self.visits = 0 
+        self.score = 0 
+        self.state = state 
+        self.player = player 
+        self.untried_moves = state.get_legal_moves(player) # Initializes the untried_moves attribute of the new object to a list of all legal moves in the current state.
 
-    def select_child(self, exploration_weight):
-        total_visits = sum(child.visits for child in self.children)
-        log_total_visits = math.log(total_visits)
+    def select_child(self, exploration_weight): # Defines a new method called select_child, which takes a single argument, self (which refers to the object calling the method). This method is used to select the child node with the highest UCB score.
+        total_visits = sum(child.visits for child in self.children) # Calculates the total number of visits to all child nodes.
+        log_total_visits = math.log(total_visits) # Calculates the natural logarithm of the total number of visits to all child nodes.
 
-        def ucb_score(child):
-            exploitation = child.score / child.visits
-            exploration = exploration_weight * math.sqrt(log_total_visits / child.visits)
-            return exploitation + exploration
+        def ucb_score(child): # Defines a new function called ucb_score, which takes a single argument, child (which refers to the child node being evaluated). This function is used to calculate the UCB score of the child node.
+            exploitation = child.score / child.visits # Calculates the exploitation score of the child node.
+            exploration = exploration_weight * math.sqrt(log_total_visits / child.visits) # Calculates the exploration score of the child node.
+            return exploitation + exploration  # Returns the sum of the exploitation and exploration scores.
 
-        return max(self.children, key=ucb_score)
+        return max(self.children, key=ucb_score) # Returns the child node with the highest UCB score.
 
     def add_child(self, move, state, player):
         child = Node(move=move, parent=self, state=state, player=player)
         self.children.append(child)
         self.untried_moves.remove(move)
-        return child
+        return child 
 
-    def update(self, score):
+    def update(self, score): 
         self.visits += 1
-        self.score += score
+        self.score += score 
 
-    def __repr__(self):
-        return f"Node(move={self.move}, visits={self.visits}, score={self.score})"
+    def __repr__(self): # Defines a special method called __repr__, which is used to represent the object as a string. This method takes a single argument, self (which refers to the object calling the method).
+        return f"Node(move={self.move}, visits={self.visits}, score={self.score})" # Returns a string representation of the current node.
 
-class DQNAgent:
+class DQNAgent: 
     def __init__(self, state_shape, num_actions, optimizer):
         self.state_shape = state_shape
-        self.num_actions = num_actions
-        self.action_space = np.arange(self.num_actions)
+        self.num_actions = num_actions 
+        self.action_space = np.arange(self.num_actions) 
         self.model = self.build_model()
-        self.optimizer = optimizer
+        self.optimizer = optimizer 
 
-    def build_model(self):
-        model = tf.keras.models.Sequential()
-        model.add(tf.keras.layers.Conv2D(32, kernel_size=3, activation='relu', input_shape=(self.state_shape[0], self.state_shape[1], self.state_shape[2])))
-        model.add(tf.keras.layers.Flatten())
-        model.add(tf.keras.layers.Dense(64, activation='relu'))
-        model.add(tf.keras.layers.Dense(self.state_shape[0] * self.state_shape[1], activation='linear'))
-        return model
+    def build_model(self): 
+        model = tf.keras.models.Sequential() 
+        model.add(tf.keras.layers.Conv2D(32, kernel_size=3, activation='relu', input_shape=(self.state_shape[0], self.state_shape[1], self.state_shape[2]))) # Adds a new convolutional layer to the model.
+        model.add(tf.keras.layers.Flatten()) # Adds a new flatten layer to the model.
+        model.add(tf.keras.layers.Dense(64, activation='relu')) # Adds a new dense layer to the model.
+        model.add(tf.keras.layers.Dense(self.state_shape[0] * self.state_shape[1], activation='linear')) # Adds a new dense layer to the model.
+        return model 
 
 
-    def act(self, state, epsilon):
+    def act(self, state, epsilon): 
         if np.random.random() < epsilon:
-            # choose a random action
-            return np.random.choice(self.num_actions)
+            # choose a random action with probability epsilon
+            return np.random.choice(self.num_actions) # Returns a random action.
         else:
             # choose the action with the highest Q-value
             state_flat = []
             for s in state:
                 if isinstance(s, np.ndarray) and s.ndim == 2:
                     # If the element is an array with 2 dimensions, add a singleton dimension to make it 3D
-                    s = s[np.newaxis, ...]
-                state_flat.append(s)
+                    s = s[np.newaxis, ...] # Adds a singleton dimension to the array.
+                state_flat.append(s) 
             # Filter out any zero-dimensional arrays in state_flat
             state_flat = [s for s in state_flat if s.size > 0]
-            if len(state_flat) == 0:
+            if len(state_flat) == 0: 
                 # if there are no valid state tensors, return a random action
-                return np.random.choice(self.num_actions)
-            state_tensor = np.concatenate(state_flat, axis=-1)
-            state_tensor = np.reshape(state_tensor, (1, self.state_shape[0], self.state_shape[1], self.state_shape[2]))
+                return np.random.choice(self.num_actions) # Returns a random action.
+            state_tensor = np.concatenate(state_flat, axis=-1) # Concatenates the state tensors along the last axis.
+            state_tensor = np.reshape(state_tensor, (1, self.state_shape[0], self.state_shape[1], self.state_shape[2])) # Reshapes the state tensor to the correct shape.
             q_values = self.model(state_tensor)
             best_action = np.argmax(q_values)
             return best_action
-
-
 
 
     def train(self, replay_buffer, batch_size, gamma):
@@ -173,7 +170,7 @@ class MCTSPlayer(Player):
         self.dqn_agent = DQNAgent(state_shape=(B, B, 2), num_actions=B*B)
 
     def get_move(self, board):
-        root = Node(state=board, player=board.current_player)
+        root = Node(state=board, player=board.current_player) # Creates a new node.
         for i in range(self.num_simulations):
             node = root
             state = board.copy()
@@ -245,22 +242,22 @@ class DQNPlayer(Player):
         return random.choice(best_moves)
 
 def get_model():
-    model = tf.keras.Sequential([
-        tf.keras.layers.Conv2D(32, (3, 3), padding='same', input_shape=(B, B, 2)),
+    model = tf.keras.Sequential([ # 2D convolutional neural network
+        tf.keras.layers.Conv2D(32, (3, 3), padding='same', input_shape=(B, B, 2)), # 2 channels for X and O
         tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.Activation('relu'),
+        tf.keras.layers.Activation('relu'), # ReLU activation
         tf.keras.layers.Conv2D(32, (3, 3), padding='same'),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Activation('relu'),
-        tf.keras.layers.Conv2D(64, (3, 3), padding='same'),
+        tf.keras.layers.Conv2D(64, (3, 3), padding='same'), # 64 filters
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Activation('relu'),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(256),
-        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dense(256), # 256 neurons
+        tf.keras.layers.BatchNormalization(), 
         tf.keras.layers.Activation('relu'),
-        tf.keras.layers.Dense(B * B),
-        tf.keras.layers.Activation('softmax')
+        tf.keras.layers.Dense(B * B), # 64 neurons for each possible move
+        tf.keras.layers.Activation('softmax') # softmax activation
     ])
     return model
 
@@ -326,13 +323,13 @@ class Board:
     def get_liberties_iterative(self, x, y, visited=None):
         if visited is None:
             visited = set()
-        liberties = set()
-        queue = deque([(x, y)])
-        visited.add((x, y))
+        liberties = set() # set of (x, y) coordinates of liberties
+        queue = deque([(x, y)]) # queue of (x, y) coordinates to visit
+        visited.add((x, y)) # set of (x, y) coordinates already visited
 
         while queue:
-            x, y = queue.popleft()
-            for nx, ny in self.get_neighbors(x, y):
+            x, y = queue.popleft() # get next cell to visit
+            for nx, ny in self.get_neighbors(x, y): # get neighbors of cell
                 if (nx, ny) in visited:
                     continue
                 visited.add((nx, ny))
@@ -344,9 +341,7 @@ class Board:
         return liberties
 
     def get_neighbors(self, x, y):
-        """
-        Returns a list of (x, y) coordinates of the neighbors of the given cell.
-        """
+        # Returns a list of (x, y) coordinates of the neighbors of the given cell.
         neighbors = []
         if x > 0:
             neighbors.append((x - 1, y))
@@ -433,93 +428,6 @@ class Board:
         
     def get_empty_points(self):
         return [(i, j) for i in range(self.size) for j in range(self.size) if self.grid[i][j] == '.']
-
-
-
-def human_play():
-    B = 6
-    board = Board(B)
-    print_board(board.grid)
-
-    BLACK = Player('B')
-    WHITE = Player('W')
-    players = [BLACK, WHITE]
-    turn = 0
-    mcts_player = MCTSPlayer(num_simulations=10, exploration_weight=1.4)
-
-    while True:
-        #mode = input("Enter '1' to play against the AI or '2' to watch the AI play against itself: ")
-        mode = '2'
-        if mode == '1':
-            human_player = WHITE
-            mcts_player = MCTSPlayer(num_simulations=10, exploration_weight=1.4, color=BLACK)
-            break
-        elif mode == '2':
-            human_player = None
-            mcts_player_1 = MCTSPlayer(num_simulations=10, exploration_weight=1.4, color=BLACK)
-            mcts_player_2 = MCTSPlayer(num_simulations=10, exploration_weight=1.4, color=WHITE)
-            break
-        else:
-            print("Invalid mode. Try again.")
-
-    times_passed = 0
-    while True:
-        if human_player is None:
-            print("MCTS is thinking...")
-            if turn % 2 == 0:
-                move = mcts_player_1.get_move(board)
-            else:
-                move = mcts_player_2.get_move(board)
-            player = players[turn % 2]
-            if move is not None:
-                print(f"{player.color} placed a stone at ({move[0]}, {move[1]})")
-                board.play(move, player)
-                print_board(board.grid)
-            else:
-                print(f"{player.color} passed")
-                times_passed += 1
-        else:
-            player = players[turn % 2]
-            if player == human_player:
-                x, y = map(int, input(f"{player.color} player's turn. Enter move (row, col): ").split())
-                move = (x, y)
-                while not board.is_valid_move(x, y, player):
-                    print("Invalid move. Try again.")
-                    x, y = map(int, input(f"{player.color} player's turn. Enter move (row, col): ").split())
-                    move = (x, y)
-                board.play(move, player)
-                print(f"{player.color} placed a stone at ({move[0]}, {move[1]})")
-                print_board(board.grid)
-            else:
-                print("MCTS is thinking...")
-                move = mcts_player.get_move(board)
-                if move is not None:
-                    print(f"{player.color} placed a stone at ({move[0]}, {move[1]})")
-                    board.play(move, player)
-                    print_board(board.grid)
-                else:
-                    print(f"{player.color} passed")
-                    times_passed += 1
-        if times_passed == 3:
-            winner = board.get_winner()
-            if winner is None:
-                print("Game ended in a tie.")
-            else:
-                print(f"{winner} wins!")
-            break
-        turn += 1
-
-        if board.is_game_over():
-            winner = board.get_winner()
-            if winner is None:
-                print("Game ended in a tie.")
-            else:
-                print(f"{winner} wins!")
-            break
-
-        if board.is_board_full():
-            print("Board is full. Game ended in a tie.")
-            break
     
 def reward(game, player):
     # check if the game has ended
@@ -546,9 +454,9 @@ def reward(game, player):
 class GameState:
     def __init__(self, board_size):
         self.board_size = board_size
-        self.board = np.zeros((board_size, board_size))
+        self.board = np.zeros((board_size, board_size)) # 2D array representing the board
         self.player = 1
-        self.action_to_move = {i*self.board_size+j: (i, j) for i in range(self.board_size) for j in range(self.board_size)}
+        self.action_to_move = {i*self.board_size+j: (i, j) for i in range(self.board_size) for j in range(self.board_size)} # map action to move
     
     def get_legal_moves(self):
         moves = []
@@ -587,7 +495,7 @@ class GameState:
     
     def check_sequence(self, i, j, di, dj):
         for k in range(5):
-            if i-di*k < 0 or i-di*k >= self.board_size or j-dj*k < 0 or j-dj*k >= self.board_size or self.board[i][j] != self.board[i-di*k][j-dj*k]:
+            if i-di*k < 0 or i-di*k >= self.board_size or j-dj*k < 0 or j-dj*k >= self.board_size or self.board[i][j] != self.board[i-di*k][j-dj*k]: # check if the sequence is out of bounds or if the sequence contains a different stone
                 return False
         return True
     
@@ -603,14 +511,14 @@ class GameState:
 
 class ReplayBuffer:
     def __init__(self, max_size):
-        self.max_size = max_size
-        self.buffer = deque(maxlen=max_size)
+        self.max_size = max_size # maximum capacity of the buffer
+        self.buffer = deque(maxlen=max_size) # internal memory (deque)
 
-    def add_transition(self, state, action, reward, next_state, done):
-        experience = (state, action, reward, next_state, done)
-        self.buffer.append(experience)
+    def add_transition(self, state, action, reward, next_state, done): # add experience to memory
+        experience = (state, action, reward, next_state, done) # create a tuple of experience
+        self.buffer.append(experience) # add the experience to internal memory
 
-    def sample(self, batch_size):
+    def sample(self, batch_size): # sample a batch of experiences from memory
         if len(self.buffer) < batch_size:
             batch_size = len(self.buffer)
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = zip(*random.sample(self.buffer, batch_size))
@@ -618,13 +526,13 @@ class ReplayBuffer:
     
 board_size = 9
 epsilon = 1.0  # starting value for epsilon
-epsilon_min = 0.1  # minimum value for epsilon
-epsilon_decay = 0.99  # decay rate for epsilon
+epsilon_min = 0.1 
+epsilon_decay = 0.99
 game_state = GameState(board_size)
 state = game_state.get_state()
 # create a new instance of the ReplayBuffer class
 buffer = ReplayBuffer(max_size=10000)
-batch_size = 32 # or any other value you want
+batch_size = 32
 gamma = 0.99
 optimizer = Adam(learning_rate=0.001)
 agent = DQNAgent(state_shape=(board_size, board_size, 2), num_actions=board_size * board_size, optimizer=optimizer)
