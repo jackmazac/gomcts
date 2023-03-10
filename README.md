@@ -2,7 +2,7 @@
 This repository contains a Python implementation of the Monte Carlo Tree Search (MCTS) algorithm for playing the game of Go. The MCTS algorithm is a heuristic search algorithm that uses random simulations to find the best move in a game.
 
 ## Overview
-The game of Go is played on a 15x15 board. The objective of the game is to place five stones in a row, either horizontally, vertically, or diagonally. The game is played by two players, Black and White, who take turns placing stones on the board.
+The game of Go is played on a 9x9, 13x13, 15x15, or 19x19 board. The objective of the game is to place five stones in a row, either horizontally, vertically, or diagonally. The game is played by two players, Black and White, who take turns placing stones on the board.
 
 The MCTS algorithm works by building a search tree from the current game state. At each node in the tree, the algorithm chooses the move that has the highest Upper Confidence Bound (UCB) score, which balances the exploitation of the best moves found so far with the exploration of new moves. The algorithm then simulates a game from the chosen move to the end of the game, using a policy network to guide the simulations. The result of the simulation is then backpropagated up the tree, updating the UCB scores of the nodes visited during the search.
 
@@ -22,11 +22,6 @@ pip install -r requirements.txt
 python3 mcts.py
 ```
 
-### Notes
-To play against the AI, run the human_play() function in the mcts.py file. You can choose to play against the AI or watch the AI play against itself.
-
-To train the policy network, run the train() function in the train.py file. You can customize the hyperparameters and the number of epochs to train the network for.
-
 ## Credits
 The implementation is based on the following resources:
 
@@ -35,7 +30,7 @@ A Simple Alpha(Go) Zero Tutorial (https://web.stanford.edu/~surag/posts/alphazer
 
 
 ## Technical Breakdown
-This is a Python code for the implementation of a game-playing algorithm called Monte Carlo Tree Search (MCTS). The code defines three classes: Player, Node, and Game.
+This is a Python code for the implementation of a game-playing algorithm called Monte Carlo Tree Search (MCTS).
 
 ###### Player
 The Player class represents a player in the game. Each player has a color (black or white) and a flag indicating whether they have passed their turn.
@@ -64,10 +59,7 @@ The Board class defines the game board and its rules, while the Player class def
 ###### DQNAgent
 The DQNAgent class defines the Deep Q-Network used by the DQNPlayer. It consists of a convolutional neural network that takes the current game state as input and outputs Q-values for each possible move. The train method trains the network using a batch of transitions sampled from a replay buffer.
 
-The Node class is used by the MCTSPlayer to represent nodes in the search tree. It keeps track of the state of the game, the move that was made to get to this state, the player who made the move, and the statistics of the node (number of visits, total score, and children).
-
-###### Human Play
-The human_play() function implements a game where a human player can play against an AI player that uses the Monte Carlo tree search algorithm to select its moves. The reward() function computes the reward given a game state and a player, where a reward of 1 is given if the player wins, -1 if the opponent wins, and a small fraction of the difference in the number of stones between the two players if the game ends in a tie. 
+The Node class is used by the MCTSPlayer to represent nodes in the search tree. It keeps track of the state of the game, the move that was made to get to this state, the player who made the move, and the statistics of the node (number of visits, total score, and children). 
 
 ###### GameState
 Finally, the GameState class defines the state of a game of a board game where two players take turns placing stones on a board of a certain size and the goal is to create a sequence of five stones in a row either horizontally, vertically, or diagonally. The get_state() method of this class returns the state of the game in a format suitable for use as input to a neural network.
@@ -81,7 +73,7 @@ Next, the code creates an instance of the DQNAgent class, which is defined elsew
 The main training loop iterates over the specified number of episodes. In each episode, the game state and player are initialized, and the game is played until it ends. At each step of the game, the agent selects an action using its current policy, the action is executed in the game, and the agent observes the next state and the reward for the current transition. The transition is added to the replay buffer, and the agent is trained on a random batch of transitions from the buffer. The value of epsilon is updated, and the player's turn is switched. When the game ends, the results of the episode are printed.
 
 ###### Conclusion
-Overall, this code implements a simple and straightforward deep Q-learning algorithm to learn to play the game of Gomoku. However, there are several ways in which the algorithm could be improved, such as using a more sophisticated neural network architecture or implementing a prioritized replay buffer.
+There are several ways in which the algorithm could be improved, such as using a more sophisticated neural network architecture or implementing a prioritized replay buffer.
 
 
 ## Known Errors
