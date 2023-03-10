@@ -85,6 +85,7 @@ Overall, this code implements a simple and straightforward deep Q-learning algor
 
 
 ## Known Errors
+```
   File "mcts.py", line 577, in <module>
     loss = agent.train(buffer, batch_size, gamma)
   File "mcts.py", line 154, in train
@@ -291,3 +292,4 @@ array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.], dtype=float32)>)).
+```
